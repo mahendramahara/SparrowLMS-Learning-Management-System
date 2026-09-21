@@ -1,0 +1,20 @@
+{
+  "availableTopics": [
+    { "id": "arch", "name": "Software Architecture", "description": "Microservices, clean code, design patterns, and scalability" },
+    { "id": "media", "name": "Media Engineering", "description": "FFmpeg transcoding, HLS adaptive streaming, and video chunks" },
+    { "id": "security", "name": "Cybersecurity & Auth", "description": "JWT tokens, Session TTLs, RBAC access control, and crypto" },
+    { "id": "cloud", "name": "Cloud & DevOps", "description": "Docker, Kubernetes, Redis queues, and distributed workers" },
+    { "id": "database", "name": "Database Systems", "description": "MongoDB indexing, TTL expiration, queries, and optimization" },
+    { "id": "frontend", "name": "Modern Frontend", "description": "React, Tailwind CSS, theme tokens, and dynamic UX" }
+  ],
+  "skillLevels": [
+    { "id": "beginner", "label": "Beginner", "desc": "New to these technical concepts" },
+    { "id": "intermediate", "label": "Intermediate", "desc": "Have basic production experience" },
+    { "id": "advanced", "label": "Advanced", "desc": "Deep dive into enterprise distributed scale" }
+  ],
+  "defaultAffinities": [
+    { "category": "Software Architecture", "score": 14.5, "interactionCount": 6 },
+    { "category": "Media Engineering", "score": 12.0, "interactionCount": 4 },
+    { "category": "Cybersecurity & Auth", "score": 8.2, "interactionCount": 3 }
+  ]
+}

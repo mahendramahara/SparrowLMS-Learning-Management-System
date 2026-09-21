@@ -141,3 +141,28 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor directories
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test coverage output
+coverage/
+.nyc_output/
+
+# Local upload / media artifacts
+server/uploads/
+server/tmp/
+server/public/videos/
+
+# Build output (Vite)
+client/dist/

@@ -1,0 +1,85 @@
+{
+  "summary": {
+    "totalEnrolled": 5,
+    "inProgress": 3,
+    "completed": 2,
+    "certificatesEarned": 2
+  },
+  "courses": [
+    {
+      "id": "c1",
+      "title": "Full Stack Web Development with MERN Stack",
+      "category": "Web Development",
+      "instructor": "Pradeep Adhikari",
+      "status": "In Progress",
+      "progress": 68,
+      "completedLessons": 12,
+      "totalLessons": 18,
+      "duration": "24 hours",
+      "lastAccessed": "2 hours ago",
+      "currentModule": "Module 3: Express.js REST API Architecture",
+      "thumbnail": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80",
+      "certificateAvailable": false
+    },
+    {
+      "id": "c2",
+      "title": "Python for Data Science & Machine Learning",
+      "category": "Data Science",
+      "instructor": "Sunita Maharjan",
+      "status": "In Progress",
+      "progress": 35,
+      "completedLessons": 7,
+      "totalLessons": 20,
+      "duration": "18 hours",
+      "lastAccessed": "Yesterday",
+      "currentModule": "Module 2: Pandas Data Cleaning & Analysis",
+      "thumbnail": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80",
+      "certificateAvailable": false
+    },
+    {
+      "id": "c3",
+      "title": "UI/UX Design Systems & Micro-Interactions",
+      "category": "Product Design",
+      "instructor": "Aarav Gurung",
+      "status": "In Progress",
+      "progress": 42,
+      "completedLessons": 5,
+      "totalLessons": 12,
+      "duration": "10 hours",
+      "lastAccessed": "3 days ago",
+      "currentModule": "Module 2: Responsive Typography & Spacing Systems",
+      "thumbnail": "https://images.unsplash.com/photo-1581291518655-9523b932edcf?w=600&auto=format&fit=crop&q=80",
+      "certificateAvailable": false
+    },
+    {
+      "id": "c4",
+      "title": "Data Structures & Algorithms in JavaScript",
+      "category": "Computer Science",
+      "instructor": "Suman Sharma",
+      "status": "Completed",
+      "progress": 100,
+      "completedLessons": 16,
+      "totalLessons": 16,
+      "duration": "16 hours",
+      "lastAccessed": "1 week ago",
+      "currentModule": "Course Completed",
+      "thumbnail": "https://images.unsplash.com/photo-1516116211227-bbc141e6c382?w=600&auto=format&fit=crop&q=80",
+      "certificateAvailable": true
+    },
+    {
+      "id": "c5",
+      "title": "Database Management & Advanced SQL Query Optimization",
+      "category": "Database Engineering",
+      "instructor": "Bikash Pandey",
+      "status": "Completed",
+      "progress": 100,
+      "completedLessons": 14,
+      "totalLessons": 14,
+      "duration": "12 hours",
+      "lastAccessed": "2 weeks ago",
+      "currentModule": "Course Completed",
+      "thumbnail": "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=600&auto=format&fit=crop&q=80",
+      "certificateAvailable": true
+    }
+  ]
+}

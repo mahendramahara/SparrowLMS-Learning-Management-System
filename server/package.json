@@ -1,0 +1,71 @@
+{
+  "name": "sparrowlms-server",
+  "version": "1.0.0",
+  "description": "Learning Management System Backend Server",
+  "main": "src/app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node -r dotenv/config src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .js",
+    "lint:fix": "eslint src --ext .js --fix",
+    "format": "prettier --write \"src/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\""
+  },
+  "keywords": [
+    "lms",
+    "learning",
+    "education",
+    "courses",
+    "sparrow"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "mongoose": "^8.0.3",
+    "express-validator": "^7.0.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6",
+    "express-rate-limit": "^7.1.5",
+    "express-mongo-sanitize": "^2.2.0",
+    "xss-clean": "^0.1.4",
+    "hpp": "^0.2.3",
+    "compression": "^1.7.4",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "cloudinary": "^1.41.0",
+    "aws-sdk": "^2.1515.0",
+    "ioredis": "^5.3.2",
+    "bull": "^4.12.0",
+    "nodemailer": "^6.9.7",
+    "stripe": "^14.9.0",
+    "axios": "^1.6.2",
+    "uuid": "^9.0.1",
+    "slugify": "^1.6.6",
+    "moment": "^2.30.1",
+    "winston": "^3.11.0",
+    "express-async-handler": "^1.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "vitest": "^1.1.0",
+    "supertest": "^6.3.3",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "@vitest/coverage-v8": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

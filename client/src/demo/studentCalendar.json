@@ -1,0 +1,114 @@
+{
+  "events": [
+    {
+      "id": "evt-1",
+      "title": "React Advanced Patterns — Live Class",
+      "date": "2026-09-22",
+      "time": "10:00",
+      "endTime": "11:30",
+      "type": "class",
+      "course": "React Mastery",
+      "instructor": "Ramesh Thapa",
+      "color": "#2563eb"
+    },
+    {
+      "id": "evt-2",
+      "title": "Data Structures Assignment Due",
+      "date": "2026-09-22",
+      "time": "23:59",
+      "endTime": null,
+      "type": "assignment",
+      "course": "DSA with Python",
+      "instructor": "Suman Shrestha",
+      "color": "#d97706"
+    },
+    {
+      "id": "evt-3",
+      "title": "Node.js REST API — Workshop",
+      "date": "2026-09-24",
+      "time": "14:00",
+      "endTime": "16:00",
+      "type": "class",
+      "course": "Backend Development",
+      "instructor": "Aarav Gurung",
+      "color": "#2563eb"
+    },
+    {
+      "id": "evt-4",
+      "title": "Mid-term Exam: Web Development",
+      "date": "2026-09-25",
+      "time": "09:00",
+      "endTime": "11:00",
+      "type": "exam",
+      "course": "Full Stack Web Dev",
+      "instructor": "Priya Maharjan",
+      "color": "#dc2626"
+    },
+    {
+      "id": "evt-5",
+      "title": "UI/UX Design Critique Session",
+      "date": "2026-09-26",
+      "time": "13:00",
+      "endTime": "14:00",
+      "type": "class",
+      "course": "UI/UX Design Principles",
+      "instructor": "Nisha Tamang",
+      "color": "#2563eb"
+    },
+    {
+      "id": "evt-6",
+      "title": "Algorithm Quiz",
+      "date": "2026-09-27",
+      "time": "15:00",
+      "endTime": "15:45",
+      "type": "exam",
+      "course": "DSA with Python",
+      "instructor": "Suman Shrestha",
+      "color": "#dc2626"
+    },
+    {
+      "id": "evt-7",
+      "title": "Portfolio Project Submission",
+      "date": "2026-09-28",
+      "time": "23:59",
+      "endTime": null,
+      "type": "assignment",
+      "course": "UI/UX Design Principles",
+      "instructor": "Nisha Tamang",
+      "color": "#d97706"
+    },
+    {
+      "id": "evt-8",
+      "title": "System Design Discussion",
+      "date": "2026-09-30",
+      "time": "11:00",
+      "endTime": "12:00",
+      "type": "class",
+      "course": "Backend Development",
+      "instructor": "Aarav Gurung",
+      "color": "#2563eb"
+    },
+    {
+      "id": "evt-9",
+      "title": "Capstone Project Kickoff",
+      "date": "2026-10-02",
+      "time": "10:00",
+      "endTime": "11:30",
+      "type": "class",
+      "course": "React Mastery",
+      "instructor": "Ramesh Thapa",
+      "color": "#2563eb"
+    },
+    {
+      "id": "evt-10",
+      "title": "Database Design Assignment",
+      "date": "2026-10-04",
+      "time": "23:59",
+      "endTime": null,
+      "type": "assignment",
+      "course": "Backend Development",
+      "instructor": "Aarav Gurung",
+      "color": "#d97706"
+    }
+  ]
+}

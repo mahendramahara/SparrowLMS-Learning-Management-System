@@ -1,0 +1,32 @@
+{
+  "profile": {
+    "name": "Aarav Gurung",
+    "email": "aarav.gurung@sparrowlms.edu",
+    "phone": "+977-9841234567",
+    "bio": "Passionate software engineering student from Kathmandu. Currently focused on full-stack web development and machine learning.",
+    "location": "Kathmandu, Nepal",
+    "website": "https://aaravgurung.dev",
+    "avatar": null,
+    "role": "student",
+    "joinedDate": "January 2025"
+  },
+  "notifications": {
+    "emailAssignments": true,
+    "emailGrades": true,
+    "emailAnnouncements": false,
+    "emailNewCourses": true,
+    "browserAssignments": true,
+    "browserMessages": true,
+    "browserGrades": false
+  },
+  "appearance": {
+    "language": "English",
+    "timezone": "Asia/Kathmandu (GMT+5:45)",
+    "dateFormat": "DD/MM/YYYY"
+  },
+  "security": {
+    "twoFactorEnabled": false,
+    "lastPasswordChange": "3 months ago",
+    "activeSessions": 2
+  }
+}

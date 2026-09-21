@@ -1,0 +1,220 @@
+{
+  "studentProfile": {
+    "name": "Mahendra Singh Mahara",
+    "role": "Student",
+    "program": "BCA | Triton International College"
+  },
+  "stats": [
+    {
+      "id": "enrolled",
+      "title": "Enrolled Courses",
+      "value": "5",
+      "trend": "+1 this month",
+      "icon": "book",
+      "iconBg": "rgba(37, 99, 235, 0.12)",
+      "iconColor": "#2563eb"
+    },
+    {
+      "id": "completed",
+      "title": "Completed Courses",
+      "value": "2",
+      "trend": "+1 this month",
+      "icon": "check",
+      "iconBg": "rgba(16, 185, 129, 0.12)",
+      "iconColor": "#059669"
+    },
+    {
+      "id": "hours",
+      "title": "Total Study Hours",
+      "value": "48.5",
+      "trend": "+12.3 this month",
+      "icon": "clock",
+      "iconBg": "rgba(147, 51, 234, 0.12)",
+      "iconColor": "#9333ea"
+    },
+    {
+      "id": "progress",
+      "title": "Average Progress",
+      "value": "68%",
+      "trend": "+15% this month",
+      "icon": "award",
+      "iconBg": "rgba(245, 158, 11, 0.12)",
+      "iconColor": "#d97706"
+    }
+  ],
+  "featuredCourse": {
+    "tag": "FEATURED COURSE",
+    "title": "Full Stack Web Development",
+    "description": "Learn modern web development with MERN stack and build real-world projects.",
+    "lessonsCount": "12 Lessons",
+    "duration": "8h 45m",
+    "level": "Beginner"
+  },
+  "courses": [
+    {
+      "id": 1,
+      "title": "Full Stack Web Development",
+      "category": "MERN Stack",
+      "status": "In Progress",
+      "progress": 68,
+      "completedLessons": 12,
+      "totalLessons": 18,
+      "icon": "code",
+      "iconBg": "rgba(37, 99, 235, 0.12)",
+      "iconColor": "#2563eb"
+    },
+    {
+      "id": 2,
+      "title": "Python for Beginners",
+      "category": "Programming",
+      "status": "Not Started",
+      "progress": 0,
+      "completedLessons": 0,
+      "totalLessons": 20,
+      "icon": "terminal",
+      "iconBg": "rgba(245, 158, 11, 0.12)",
+      "iconColor": "#d97706"
+    },
+    {
+      "id": 3,
+      "title": "UI/UX Design Fundamentals",
+      "category": "Design",
+      "status": "In Progress",
+      "progress": 42,
+      "completedLessons": 5,
+      "totalLessons": 12,
+      "icon": "palette",
+      "iconBg": "rgba(236, 72, 153, 0.12)",
+      "iconColor": "#db2777"
+    },
+    {
+      "id": 4,
+      "title": "Data Structures & Algorithms",
+      "category": "Computer Science",
+      "status": "Completed",
+      "progress": 100,
+      "completedLessons": 16,
+      "totalLessons": 16,
+      "icon": "cpu",
+      "iconBg": "rgba(16, 185, 129, 0.12)",
+      "iconColor": "#059669"
+    }
+  ],
+  "continueLearning": {
+    "courseTitle": "Full Stack Web Development",
+    "moduleTitle": "Module 3: Express.js Fundamentals",
+    "progress": 68
+  },
+  "calendar": {
+    "month": "September 2025",
+    "totalDays": 30,
+    "activeDay": 24,
+    "markedDay": 25
+  },
+  "activities": [
+    {
+      "id": 1,
+      "icon": "file",
+      "iconBg": "rgba(37, 99, 235, 0.12)",
+      "iconColor": "#2563eb",
+      "title": "You submitted an assignment",
+      "subtitle": "Web Development Assignment",
+      "time": "2 hours ago"
+    },
+    {
+      "id": 2,
+      "icon": "check",
+      "iconBg": "rgba(16, 185, 129, 0.12)",
+      "iconColor": "#059669",
+      "title": "Course completed",
+      "subtitle": "Python for Beginners",
+      "time": "1 day ago"
+    },
+    {
+      "id": 3,
+      "icon": "message",
+      "iconBg": "rgba(244, 63, 94, 0.12)",
+      "iconColor": "#e11d48",
+      "title": "New message",
+      "subtitle": "From: Instructor (UI/UX Design)",
+      "time": "1 day ago"
+    },
+    {
+      "id": 4,
+      "icon": "award",
+      "iconBg": "rgba(124, 58, 237, 0.12)",
+      "iconColor": "#7c3aed",
+      "title": "Grade updated",
+      "subtitle": "Database Management - Quiz 2",
+      "time": "2 days ago"
+    }
+  ],
+  "upcomingClasses": [
+    {
+      "id": 1,
+      "title": "Web Development Basics",
+      "time": "Today, 10:00 AM - 11:30 AM",
+      "color": "#2563eb",
+      "bg": "rgba(37, 99, 235, 0.12)"
+    },
+    {
+      "id": 2,
+      "title": "Database Management",
+      "time": "Tomorrow, 2:00 PM - 3:30 PM",
+      "color": "#2563eb",
+      "bg": "rgba(37, 99, 235, 0.12)"
+    },
+    {
+      "id": 3,
+      "title": "UI/UX Design",
+      "time": "Sep 25, 2025, 11:00 AM - 12:30 PM",
+      "color": "#2563eb",
+      "bg": "rgba(37, 99, 235, 0.12)"
+    },
+    {
+      "id": 4,
+      "title": "Mathematics for Computing",
+      "time": "Sep 27, 2025, 10:00 AM - 11:00 AM",
+      "color": "#9333ea",
+      "bg": "rgba(147, 51, 234, 0.12)"
+    }
+  ],
+  "quickLinks": [
+    {
+      "id": "browse",
+      "title": "Browse Courses",
+      "desc": "Explore new courses",
+      "to": "/courses",
+      "icon": "book",
+      "color": "#2563eb",
+      "bg": "rgba(37, 99, 235, 0.12)"
+    },
+    {
+      "id": "assignments",
+      "title": "My Assignments",
+      "desc": "View pending work",
+      "to": "/student/assignments",
+      "icon": "clipboard",
+      "color": "#9333ea",
+      "bg": "rgba(147, 51, 234, 0.12)"
+    },
+    {
+      "id": "grades",
+      "title": "Grades",
+      "desc": "Check your performance",
+      "to": "/student/grades",
+      "icon": "graduation",
+      "color": "#059669",
+      "bg": "rgba(16, 185, 129, 0.12)"
+    },
+    {
+      "id": "support",
+      "title": "Help & Support",
+      "desc": "Get help when you need it",
+      "to": "/student/settings",
+      "icon": "help",
+      "color": "#ea580c",
+      "bg": "rgba(234, 88, 12, 0.12)"
+    }
+  ]
+}

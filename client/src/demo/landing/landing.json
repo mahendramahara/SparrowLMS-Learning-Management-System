@@ -1,0 +1,112 @@
+{
+    "hero": {
+        "eyebrow": "Learn with purpose",
+        "title": "Skills that move your future forward.",
+        "description": "Practical courses from experienced instructors, built for people who want to understand the work and use it in the real world.",
+        "previewLabel": "Learning workspace",
+        "previewTitle": "Build better products with stronger foundations.",
+        "previewDescription": "Architecture, frontend, security, and the systems that connect them.",
+        "previewImage": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=900&auto=format&fit=crop&q=80",
+        "audienceStats": [
+            {
+                "value": "10k+",
+                "label": "learners"
+            },
+            {
+                "value": "500+",
+                "label": "lessons"
+            },
+            {
+                "value": "Anytime",
+                "label": "your pace"
+            }
+        ],
+        "stats": [
+            {
+                "value": "4.8/5",
+                "label": "average rating"
+            },
+            {
+                "value": "200+",
+                "label": "expert lessons"
+            },
+            {
+                "value": "24/7",
+                "label": "your pace"
+            }
+        ]
+    },
+    "categories": [
+        {
+            "id": "architecture",
+            "name": "Architecture",
+            "count": "48 courses",
+            "icon": "layers"
+        },
+        {
+            "id": "frontend",
+            "name": "Frontend",
+            "count": "62 courses",
+            "icon": "monitor"
+        },
+        {
+            "id": "cloud",
+            "name": "Cloud & DevOps",
+            "count": "36 courses",
+            "icon": "server"
+        },
+        {
+            "id": "security",
+            "name": "Security",
+            "count": "29 courses",
+            "icon": "lock"
+        },
+        {
+            "id": "database",
+            "name": "Databases",
+            "count": "31 courses",
+            "icon": "database"
+        },
+        {
+            "id": "programming",
+            "name": "Programming",
+            "count": "74 courses",
+            "icon": "code"
+        }
+    ],
+    "instructors": [
+        {
+            "id": "sunita",
+            "name": "Sunita Maharjan",
+            "role": "Media Engineering",
+            "image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=160&h=160&fit=crop",
+            "rating": "4.9"
+        },
+        {
+            "id": "pradeep",
+            "name": "Pradeep Adhikari",
+            "role": "Software Architecture",
+            "image": "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=160&h=160&fit=crop",
+            "rating": "4.8"
+        },
+        {
+            "id": "suman",
+            "name": "Suman Sharma",
+            "role": "Security & Auth",
+            "image": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&h=160&fit=crop",
+            "rating": "4.7"
+        },
+        {
+            "id": "aarav",
+            "name": "Aarav Gurung",
+            "role": "Cloud & DevOps",
+            "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop",
+            "rating": "4.8"
+        }
+    ],
+    "cta": {
+        "eyebrow": "A better way to keep learning",
+        "title": "Ready to start learning?",
+        "description": "Join a focused learning space and build skills that last."
+    }
+}

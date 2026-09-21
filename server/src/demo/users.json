@@ -1,0 +1,50 @@
+[
+  {
+    "_id": "demo_student_001",
+    "name": "Aarav Gurung",
+    "email": "student@demo.com",
+    "role": "student",
+    "isDemo": true,
+    "isVerified": true,
+    "viewOnly": true,
+    "avatar": "https://ui-avatars.com/api/?name=Aarav+Gurung&background=4F46E5&color=fff",
+    "bio": "Student exploring distributed video architectures, microservices, and backend performance.",
+    "preferences": {
+      "theme": "system",
+      "fontSize": "medium",
+      "colorScheme": "blue"
+    }
+  },
+  {
+    "_id": "demo_instructor_001",
+    "name": "Sunita Maharjan",
+    "email": "instructor@demo.com",
+    "role": "instructor",
+    "isDemo": true,
+    "isVerified": true,
+    "viewOnly": true,
+    "avatar": "https://ui-avatars.com/api/?name=Sunita+Maharjan&background=10B981&color=fff",
+    "bio": "Senior Media Streaming Specialist & Full-Stack Instructor.",
+    "preferences": {
+      "theme": "system",
+      "fontSize": "medium",
+      "colorScheme": "green"
+    }
+  },
+  {
+    "_id": "demo_admin_001",
+    "name": "Suman Sharma",
+    "email": "admin@demo.com",
+    "role": "admin",
+    "isDemo": true,
+    "isVerified": true,
+    "viewOnly": true,
+    "avatar": "https://ui-avatars.com/api/?name=Suman+Sharma&background=EA580C&color=fff",
+    "bio": "SparrowLMS Cluster Administrator & Infrastructure Overseer.",
+    "preferences": {
+      "theme": "system",
+      "fontSize": "medium",
+      "colorScheme": "orange"
+    }
+  }
+]

@@ -1,0 +1,55 @@
+{
+  "unreadCount": 2,
+  "notifications": [
+    {
+      "id": "notif-1",
+      "type": "assignment",
+      "title": "Assignment Graded: Containerizing Microservices",
+      "message": "Instructor Pradeep Adhikari evaluated your Docker Compose assignment. Score awarded: 96 / 100 with feedback comments.",
+      "time": "15 minutes ago",
+      "read": false,
+      "sender": "Pradeep Adhikari",
+      "actionUrl": "/student/assignments"
+    },
+    {
+      "id": "notif-2",
+      "type": "course",
+      "title": "New Lesson Added: Express Middleware Architecture",
+      "message": "Module 3 has been updated with a new unit: 'Building Enterprise Error Handling Middleware'.",
+      "time": "2 hours ago",
+      "read": false,
+      "sender": "SparrowLMS Learning Team",
+      "actionUrl": "/student/course/c1"
+    },
+    {
+      "id": "notif-3",
+      "type": "assignment",
+      "title": "Assignment Reminder: REST API Middleware Due in 2 Days",
+      "message": "Your project submission for Full Stack Web Development is due on Sep 26, 2025 at 11:59 PM.",
+      "time": "5 hours ago",
+      "read": true,
+      "sender": "Automated Course Scheduler",
+      "actionUrl": "/student/assignments"
+    },
+    {
+      "id": "notif-4",
+      "type": "grade",
+      "title": "Certificate of Completion Issued",
+      "message": "Congratulations! Your certificate for Data Structures & Algorithms in JavaScript is now available for download.",
+      "time": "Yesterday",
+      "read": true,
+      "sender": "Academic Certification Office",
+      "actionUrl": "/student/courses"
+    },
+    {
+      "id": "notif-5",
+      "type": "system",
+      "title": "Platform Scheduled Maintenance Notice",
+      "message": "SparrowLMS cloud servers will undergo scheduled performance upgrades on Sunday, 2:00 AM - 3:00 AM NPT.",
+      "time": "2 days ago",
+      "read": true,
+      "sender": "SparrowLMS Infrastructure",
+      "actionUrl": "/student"
+    }
+  ]
+}
