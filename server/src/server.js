@@ -4,9 +4,9 @@ const logger = require('./utils/logger');
 const port = Number(process.env.PORT) || 5000;
 const host = process.env.HOST || 'localhost';
 
-const server = app.listen(port, host, () => {
-  logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on ${host}:${port}`);
-});
+const server = host
+  ? app.listen(port, host, () => logger.info(`Server running on ${host}:${port}`))
+  : app.listen(port, () => logger.info(`Server running on port ${port}`));
 
 const shutdown = () => {
   server.close(() => {

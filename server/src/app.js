@@ -29,13 +29,23 @@ const app = express();
 
 if (process.env.NODE_ENV !== 'test') {
   connectDB();
-  connectRedis();
+  if (process.env.REDIS_HOST) {
+    connectRedis();
+  }
 }
 
 app.use(helmet());
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
