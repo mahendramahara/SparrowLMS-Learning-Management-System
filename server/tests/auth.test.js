@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../app');
+const app = require('../src/app');
 
 describe('Auth Module', () => {
   describe('POST /api/auth/register', () => {
@@ -102,7 +102,8 @@ describe('Auth Module', () => {
 
   describe('GET /api/auth/profile', () => {
     it('should get user profile with valid token', async () => {
-      const token = 'valid_token_here';
+      const loginRes = await request(app).post('/api/auth/demo-login').send({ role: 'student' });
+      const token = loginRes.body.token;
 
       const response = await request(app)
         .get('/api/auth/profile')
@@ -121,7 +122,8 @@ describe('Auth Module', () => {
 
   describe('PUT /api/auth/profile', () => {
     it('should update user profile', async () => {
-      const token = 'valid_token_here';
+      const loginRes = await request(app).post('/api/auth/demo-login').send({ role: 'student' });
+      const token = loginRes.body.token;
       const updateData = {
         name: 'Updated Name',
         bio: 'Updated bio',

@@ -19,6 +19,13 @@ const connectDB = async () => {
 
     logger.info(`MongoDB Connected: ${conn.connection.host}`);
 
+    const seedDefaultAdmin = require('../utils/seedDefaultAdmin');
+    await seedDefaultAdmin();
+
+    const seedDefaultCategories = require('../utils/seedDefaultCategories');
+    await seedDefaultCategories();
+
+
     mongoose.connection.on('error', err => {
       logger.error(`MongoDB connection error: ${err}`);
     });

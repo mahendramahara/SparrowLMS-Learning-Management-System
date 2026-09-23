@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import CourseCard from '../../common/CourseCard';
-import coursesData from '../../../demo/courses.json';
+import { getCourses } from '../../../services/course.api';
 
 const COURSE_PRESENTATION = [
   { badge: 'Featured', badgeColor: '#16A34A', avatar: '/images/avatars/suman.jpg' },
@@ -8,21 +9,38 @@ const COURSE_PRESENTATION = [
   { badge: null, badgeColor: '', avatar: '/images/avatars/pratik.jpg' },
 ];
 
-const COURSES = coursesData
-  .filter(course => course.status === 'Published')
-  .map((course, index) => ({
-    ...COURSE_PRESENTATION[index % COURSE_PRESENTATION.length],
-    image: course.thumbnail,
-    title: course.title,
-    instructor: course.instructor,
-    rating: course.rating,
-    enrolled: course.enrolled,
-    duration: course.duration,
-    level: course.level,
-    price: course.price,
-  }));
-
 export default function FeaturedCourses() {
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFeatured = async () => {
+      try {
+        const res = await getCourses({ limit: 6 });
+        if (isMounted && res?.data?.length) {
+          const mapped = res.data.map((course, index) => ({
+            ...COURSE_PRESENTATION[index % COURSE_PRESENTATION.length],
+            image: course.thumbnail,
+            title: course.title,
+            instructor: course.instructor?.name || 'Sparrow Instructor',
+            rating: course.rating || 5.0,
+            enrolled: course.enrolled || 0,
+            duration: `${course.duration || 10}h`,
+            level: course.level || 'Beginner',
+            price: course.price === 0 ? 'Free' : `NPR ${course.price}`,
+          }));
+          setCourses(mapped);
+        }
+      } catch (err) {
+        void err;
+      }
+    };
+    fetchFeatured();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className="px-6 py-14" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -36,7 +54,7 @@ export default function FeaturedCourses() {
             </p>
           </div>
           <a
-            href="#"
+            href="/courses"
             className="flex items-center gap-1 text-sm font-medium hover:underline"
             style={{ color: 'var(--color-primary-600)' }}
           >
@@ -45,7 +63,7 @@ export default function FeaturedCourses() {
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {COURSES.map(c => (
+          {courses.map(c => (
             <CourseCard key={c.title} {...c} />
           ))}
         </div>

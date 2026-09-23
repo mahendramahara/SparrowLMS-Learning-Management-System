@@ -27,7 +27,7 @@ export default function StudentCourseItemCard({ course, onAction }) {
             className="absolute top-3 left-3 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm"
             style={{ backgroundColor: 'var(--color-primary-600)' }}
           >
-            {course.category}
+            {course.category?.name || (typeof course.category === 'string' ? course.category : 'General')}
           </span>
 
           <span

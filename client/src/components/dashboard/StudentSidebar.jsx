@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -11,6 +12,7 @@ import {
   Settings,
   LogOut,
   Mountain,
+  ShoppingBag,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -18,22 +20,11 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', to: '/student', icon: LayoutDashboard },
   { id: 'courses', label: 'My Courses', to: '/student/courses', icon: BookOpen },
   { id: 'browse', label: 'Browse Courses', to: '/student/browse', icon: Compass },
-  {
-    id: 'assignments',
-    label: 'Assignments',
-    to: '/student/assignments',
-    icon: ClipboardList,
-    badge: 3,
-  },
+  { id: 'assignments', label: 'Assignments', to: '/student/assignments', icon: ClipboardList },
   { id: 'grades', label: 'Grades', to: '/student/grades', icon: GraduationCap },
-  { id: 'messages', label: 'Messages', to: '/student/messages', icon: MessageSquare, badge: 5 },
-  {
-    id: 'notifications',
-    label: 'Notifications',
-    to: '/student/notifications',
-    icon: Bell,
-    badge: 2,
-  },
+  { id: 'purchases', label: 'Purchases', to: '/student/purchases', icon: ShoppingBag },
+  { id: 'messages', label: 'Messages', to: '/student/messages', icon: MessageSquare },
+  { id: 'notifications', label: 'Notifications', to: '/student/notifications', icon: Bell },
   { id: 'calendar', label: 'Calendar', to: '/student/calendar', icon: Calendar },
   { id: 'settings', label: 'Settings', to: '/student/settings', icon: Settings },
 ];
@@ -42,9 +33,16 @@ export default function StudentSidebar({ isMobileOpen, onCloseMobile }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+      navigate('/login', { replace: true });
+    }
   };
 
   const workspacePath =
@@ -126,11 +124,12 @@ export default function StudentSidebar({ isMobileOpen, onCloseMobile }) {
             <span>© 2025 SparrowLMS</span>
             <button
               type="button"
+              disabled={isLoggingOut}
               onClick={handleLogout}
-              className="flex items-center gap-1 text-slate-400 hover:text-rose-400 transition"
+              className="flex items-center gap-1 text-slate-400 hover:text-rose-400 transition disabled:opacity-50"
             >
               <LogOut className="h-3 w-3" />
-              <span>Logout</span>
+              <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
             </button>
           </div>
         </div>

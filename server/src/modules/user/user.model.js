@@ -17,9 +17,21 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Please provide a password'],
+      required: function () {
+        return this.authProvider === 'local';
+      },
       minlength: 6,
       select: false,
+    },
+    googleId: {
+      type: String,
+      default: null,
+      sparse: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
     },
     role: {
       type: String,
@@ -38,26 +50,44 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    status: {
+      type: String,
+      enum: ['Active', 'Suspended', 'Pending'],
+      default: 'Active',
+    },
     isDemo: {
       type: Boolean,
       default: false,
     },
+    viewOnly: {
+      type: Boolean,
+      default: false,
+    },
+
     preferences: {
-      theme: {
-        type: String,
-        enum: ['light', 'dark', 'system'],
-        default: 'system',
+      type: mongoose.Schema.Types.Mixed,
+      default: {
+        theme: 'system',
+        fontSize: 'medium',
+        colorScheme: 'blue',
       },
-      fontSize: {
-        type: String,
-        enum: ['small', 'medium', 'large'],
-        default: 'medium',
-      },
-      colorScheme: {
-        type: String,
-        enum: ['blue', 'purple', 'green', 'orange'],
-        default: 'blue',
-      },
+    },
+    interests: {
+      type: [String],
+      default: [],
+    },
+    learningGoal: {
+      type: String,
+      default: '',
+    },
+    skillLevel: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced', ''],
+      default: 'beginner',
+    },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
     },
     lastLogin: Date,
     loginAttempts: {
@@ -72,16 +102,19 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
+  if (!this.isModified('password') || !this.password) {
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+userSchema.methods.comparePassword = userSchema.methods.matchPassword;
 
 userSchema.methods.isLocked = function () {
   return !!(this.lockUntil && this.lockUntil > Date.now());

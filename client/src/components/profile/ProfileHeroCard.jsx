@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   User,
   MapPin,
@@ -9,7 +11,9 @@ import {
   CheckCircle,
   Clock,
   Flame,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 const STAT_CONFIG = [
   { key: 'coursesEnrolled', label: 'Enrolled', icon: BookOpen, color: '#2563eb' },
@@ -39,6 +43,19 @@ function StatPill({ label, value, icon: Icon, color }) {
 
 export default function ProfileHeroCard({ profile }) {
   const { name, email, phone, location, website, bio, role, joinedDate, stats } = profile;
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+      navigate('/login', { replace: true });
+    }
+  };
 
   return (
     <div
@@ -119,16 +136,33 @@ export default function ProfileHeroCard({ profile }) {
           </div>
         </div>
 
-        <div
-          className="flex items-center gap-1.5 shrink-0 self-start rounded-xl px-4 py-2 border"
-          style={{
-            borderColor: 'var(--border-subtle)',
-            backgroundColor: 'var(--bg-subtle)',
-            color: 'var(--text-muted)',
-          }}
-        >
-          <User className="h-3.5 w-3.5" />
-          <span className="text-xs font-medium">View Only</span>
+        <div className="flex items-center gap-2 shrink-0 self-start">
+          <div
+            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 border"
+            style={{
+              borderColor: 'var(--border-subtle)',
+              backgroundColor: 'var(--bg-subtle)',
+              color: 'var(--text-muted)',
+            }}
+          >
+            <User className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">View Only</span>
+          </div>
+
+          <button
+            type="button"
+            disabled={isLoggingOut}
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 border text-xs font-semibold transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+            style={{
+              borderColor: 'rgba(239, 68, 68, 0.25)',
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              color: '#ef4444',
+            }}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>
+          </button>
         </div>
       </div>
 

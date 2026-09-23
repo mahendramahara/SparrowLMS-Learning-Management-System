@@ -39,10 +39,14 @@ export const AuthProvider = ({ children }) => {
 
   const handleAuthSuccess = data => {
     const authToken = data.token;
+    const authRefreshToken = data.refreshToken;
     const authUser = data.user || data.data;
     setToken(authToken);
     setUser(authUser);
     localStorage.setItem('token', authToken);
+    if (authRefreshToken) {
+      localStorage.setItem('refreshToken', authRefreshToken);
+    }
     localStorage.setItem('user', JSON.stringify(authUser));
     return authUser;
   };
@@ -77,8 +81,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (credential, role = 'student') => {
+    setLoading(true);
+    try {
+      const response = await authService.googleLogin(credential, role);
+      return handleAuthSuccess(response);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sendOTP = async email => {
     return await authService.sendVerificationOTP(email);
+  };
+
+  const resendOTP = async (email, type = 'email_verification') => {
+    return await authService.resendVerificationOTP(email, type);
   };
 
   const verifyOTP = async (email, otp, type) => {
@@ -93,16 +111,18 @@ export const AuthProvider = ({ children }) => {
     return await authService.resetPassword(email, otp, newPassword);
   };
 
-  const logout = async () => {
+  const logout = async (allDevices = false) => {
     try {
-      await authService.logout();
+      await authService.logout(allDevices);
     } catch (err) {
       void err;
     } finally {
       setToken(null);
       setUser(null);
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+      sessionStorage.clear();
     }
   };
 
@@ -112,9 +132,11 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated: Boolean(token && user),
     login,
+    googleLogin,
     demoLogin,
     register,
     sendOTP,
+    resendOTP,
     verifyOTP,
     forgotPassword,
     resetPassword,

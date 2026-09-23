@@ -87,7 +87,6 @@ SparrowLMS-Learning-Management-System/
 │   │   │   ├── settings/           # Settings section components
 │   │   │   └── layout/             # MainLayout, StudentLayout
 │   │   ├── context/                # AuthContext, ThemeContext
-│   │   ├── demo/                   # Mock JSON data files
 │   │   ├── hooks/                  # Custom React hooks
 │   │   ├── pages/                  # Route-level page components
 │   │   │   ├── auth/               # Login, Register, OTP, Forgot Password

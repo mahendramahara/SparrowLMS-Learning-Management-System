@@ -39,3 +39,9 @@ export const getCertificate = async enrollmentId => {
   const response = await api.get(`/enrollments/${enrollmentId}/certificate`);
   return response.data;
 };
+
+export const getStudentDashboard = async () => {
+  const response = await api.get('/enrollments/dashboard');
+  return response.data;
+};
+

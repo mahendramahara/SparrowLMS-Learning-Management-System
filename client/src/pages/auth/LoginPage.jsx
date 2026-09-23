@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { AuthCard, RoleSwitcher, AuthInput, AuthButton, AuthAlert } from '../../components/auth';
+import { AuthCard, RoleSwitcher, AuthInput, AuthButton, AuthAlert, GoogleSignInButton } from '../../components/auth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, demoLogin, loading } = useAuth();
+  const { login, googleLogin, loading } = useAuth();
 
   const [role, setRole] = useState('student');
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
-  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleChange = e => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -37,18 +36,15 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = async () => {
+  const handleGoogleSuccess = async credential => {
     setErrorMessage('');
-    setDemoLoading(true);
     try {
-      const user = await demoLogin(role);
+      const user = await googleLogin(credential, role);
       navigate(getRedirectPath(user?.role || role));
     } catch (err) {
       setErrorMessage(
-        err.response?.data?.message || 'Demo login failed. Please try credentials instead.'
+        err.response?.data?.message || 'Google sign-in failed. Please try again.'
       );
-    } finally {
-      setDemoLoading(false);
     }
   };
 
@@ -117,7 +113,7 @@ export default function LoginPage() {
           />
         </div>
 
-        <AuthButton type="submit" loading={loading && !demoLoading} icon={ArrowRight}>
+        <AuthButton type="submit" loading={loading} icon={ArrowRight}>
           Sign In as {role.charAt(0).toUpperCase() + role.slice(1)}
         </AuthButton>
       </form>
@@ -131,20 +127,16 @@ export default function LoginPage() {
             className="px-2"
             style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-muted)' }}
           >
-            Quick Testing
+            Or Continue With
           </span>
         </div>
       </div>
 
-      <AuthButton
-        type="button"
-        variant="secondary"
-        loading={demoLoading}
-        onClick={handleDemoLogin}
-        icon={Sparkles}
-      >
-        Demo Login as {role.charAt(0).toUpperCase() + role.slice(1)}
-      </AuthButton>
+      <GoogleSignInButton
+        role={role}
+        onAuthSuccess={handleGoogleSuccess}
+        text={`Sign In with Google as ${role.charAt(0).toUpperCase() + role.slice(1)}`}
+      />
     </AuthCard>
   );
 }

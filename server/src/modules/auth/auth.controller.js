@@ -1,93 +1,19 @@
 const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const User = require('../user/user.model');
-const OTP = require('./auth.model');
+const Token = require('./token.model');
 const Session = require('./session.model');
-const { sendTokenResponse } = require('../../utils/tokenUtils');
+const { sendTokenResponse, generateAccessToken, generateRefreshToken } = require('../../utils/tokenUtils');
 const sendEmail = require('../../utils/emailUtils');
-const demoUsers = require('../../demo/users.json');
+const { getEmailVerificationTemplate, getPasswordResetTemplate } = require('../../utils/emailTemplates');
+const { logSystemEvent } = require('../../utils/auditLogger');
+const { createNotification } = require('../../utils/notificationDispatcher');
 
-const recordUserSession = async (user, token, req) => {
-  try {
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    await Session.create({
-      userId: user._id || user.id,
-      userEmail: user.email,
-      role: user.role,
-      isDemo: Boolean(user.isDemo),
-      tokenHash,
-      ipAddress: req.ip || req.connection?.remoteAddress || '127.0.0.1',
-      userAgent: req.headers['user-agent'] || 'Web Client',
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
-  } catch (err) {
-    // Session model has TTL index; silent catch if DB is in test/offline mode
-  }
-};
 
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
-const sendOTPEmail = async (email, otp, type) => {
-  const isVerification = type === 'email_verification';
-  const subject = isVerification
-    ? 'Verify Your Email Address - SparrowLMS'
-    : 'Reset Your Account Password - SparrowLMS';
-
-  const heading = isVerification ? 'Verify Your Account' : 'Password Reset Request';
-  const description = isVerification
-    ? 'Thank you for choosing SparrowLMS. Please use the following one-time verification code to activate your account:'
-    : 'We received a request to reset your password. Use the verification code below to proceed with setting a new password:';
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b; }
-        .container { max-width: 540px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-        .header { background: #0f172a; padding: 24px; text-align: center; }
-        .logo { font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; }
-        .content { padding: 32px 24px; }
-        .title { font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #0f172a; }
-        .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 24px; }
-        .otp-box { background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 18px; text-align: center; margin-bottom: 24px; }
-        .otp-code { font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #0f172a; font-family: monospace; }
-        .notice { font-size: 12px; color: #64748b; line-height: 1.5; }
-        .footer { border-top: 1px solid #e2e8f0; padding: 16px 24px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="logo">SparrowLMS</div>
-        </div>
-        <div class="content">
-          <div class="title">${heading}</div>
-          <div class="text">${description}</div>
-          <div class="otp-box">
-            <div class="otp-code">${otp}</div>
-          </div>
-          <div class="notice">
-            This verification code will expire in 10 minutes. If you did not make this request, please disregard this email.
-          </div>
-        </div>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} SparrowLMS Learning Management System. All rights reserved.
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  return sendEmail({
-    email,
-    subject,
-    html,
-    otp,
-  });
 };
 
 const sendVerificationOTP = asyncHandler(async (req, res) => {
@@ -106,17 +32,34 @@ const sendVerificationOTP = asyncHandler(async (req, res) => {
     throw new Error('An account with this email address already exists');
   }
 
-  await OTP.deleteMany({ email: normalizedEmail, type: 'email_verification' });
+  await Token.deleteMany({ email: normalizedEmail, type: 'email_verification' });
 
   const otp = generateOTP();
 
-  await OTP.create({
+  await Token.create({
     email: normalizedEmail,
     otp,
+    token: otp,
     type: 'email_verification',
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
   });
 
-  const mailResult = await sendOTPEmail(normalizedEmail, otp, 'email_verification');
+  const html = getEmailVerificationTemplate(otp, 'Learner');
+  const mailResult = await sendEmail({
+    email: normalizedEmail,
+    subject: 'Verify Your Email Address - SparrowLMS',
+    html,
+    otp,
+  });
+
+  await logSystemEvent({
+    actorEmail: normalizedEmail,
+    action: 'AUTH_SEND_OTP',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { email: normalizedEmail, type: 'email_verification' },
+  });
 
   res.status(200).json({
     success: true,
@@ -127,31 +70,120 @@ const sendVerificationOTP = asyncHandler(async (req, res) => {
   });
 });
 
-const verifyOTP = asyncHandler(async (req, res) => {
-  const { email, otp, type } = req.body;
+const resendVerificationOTP = asyncHandler(async (req, res) => {
+  const { email, type = 'email_verification' } = req.body;
 
-  if (!email || !otp || !type) {
+  if (!email) {
+    res.status(400);
+    throw new Error('Please provide email address');
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const existingToken = await Token.findOne({
+    email: normalizedEmail,
+    type,
+  }).sort({ createdAt: -1 });
+
+  if (existingToken && existingToken.lastSentAt) {
+    const elapsedSeconds = Math.floor((Date.now() - new Date(existingToken.lastSentAt).getTime()) / 1000);
+    if (elapsedSeconds < 45) {
+      res.status(429);
+      throw new Error(`Please wait ${45 - elapsedSeconds} seconds before requesting a new code`);
+    }
+  }
+
+  const otp = generateOTP();
+
+  await Token.deleteMany({ email: normalizedEmail, type });
+
+  await Token.create({
+    email: normalizedEmail,
+    otp,
+    token: otp,
+    type,
+    resendCount: (existingToken?.resendCount || 0) + 1,
+    lastSentAt: new Date(),
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+  });
+
+  const html =
+    type === 'password_reset'
+      ? getPasswordResetTemplate(otp, 'User')
+      : getEmailVerificationTemplate(otp, 'Learner');
+
+  const mailResult = await sendEmail({
+    email: normalizedEmail,
+    subject:
+      type === 'password_reset'
+        ? 'Reset Your Account Password - SparrowLMS'
+        : 'Verify Your Email Address - SparrowLMS',
+    html,
+    otp,
+  });
+
+  await logSystemEvent({
+    actorEmail: normalizedEmail,
+    action: 'AUTH_RESEND_OTP',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { email: normalizedEmail, type },
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'New verification code dispatched to your email',
+    ...(process.env.NODE_ENV !== 'production' && mailResult?.previewOtp
+      ? { previewOtp: mailResult.previewOtp }
+      : {}),
+  });
+});
+
+const verifyOTP = asyncHandler(async (req, res) => {
+  const { email, type } = req.body;
+  const code = (req.body.otp || req.body.token || '').toString().trim();
+
+  if (!email || !code || !type) {
     res.status(400);
     throw new Error('Please provide email, verification code, and verification type');
   }
 
   const normalizedEmail = email.toLowerCase().trim();
 
-  const otpRecord = await OTP.findOne({
+  const tokenRecord = await Token.findOne({
     email: normalizedEmail,
-    otp: otp.trim(),
+    $or: [{ otp: code }, { token: code }],
     type,
     isUsed: false,
     expiresAt: { $gt: new Date() },
   });
 
-  if (!otpRecord) {
+  if (!tokenRecord) {
+    await logSystemEvent({
+      actorEmail: normalizedEmail,
+      action: 'AUTH_VERIFY_OTP_FAILED',
+      category: 'AUTH',
+      status: 'FAILURE',
+      req,
+      details: { email: normalizedEmail, type },
+    });
+
     res.status(400);
     throw new Error('Invalid or expired verification code');
   }
 
-  otpRecord.isUsed = true;
-  await otpRecord.save();
+  tokenRecord.isUsed = true;
+  await tokenRecord.save();
+
+  await logSystemEvent({
+    actorEmail: normalizedEmail,
+    action: 'AUTH_VERIFY_OTP_SUCCESS',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { email: normalizedEmail, type },
+  });
 
   res.status(200).json({
     success: true,
@@ -160,7 +192,8 @@ const verifyOTP = asyncHandler(async (req, res) => {
 });
 
 const register = asyncHandler(async (req, res) => {
-  const { name, email, password, otp } = req.body;
+  const { name, email, password, role = 'student' } = req.body;
+  const code = (req.body.otp || req.body.token || '').toString().trim();
 
   if (!name || !email || !password) {
     res.status(400);
@@ -169,20 +202,19 @@ const register = asyncHandler(async (req, res) => {
 
   const normalizedEmail = email.toLowerCase().trim();
 
-  // If not running automated test without OTP, enforce OTP verification
   if (process.env.NODE_ENV !== 'test') {
-    if (!otp) {
+    if (!code) {
       res.status(400);
       throw new Error('Please provide email verification code');
     }
 
-    const otpRecord = await OTP.findOne({
+    const tokenRecord = await Token.findOne({
       email: normalizedEmail,
-      otp: otp.trim(),
+      $or: [{ otp: code }, { token: code }],
       type: 'email_verification',
     }).sort({ createdAt: -1 });
 
-    if (!otpRecord || !otpRecord.isUsed) {
+    if (!tokenRecord || !tokenRecord.isUsed) {
       res.status(400);
       throw new Error('Please verify your email code before completing registration');
     }
@@ -194,14 +226,40 @@ const register = asyncHandler(async (req, res) => {
     throw new Error('An account with this email address already exists');
   }
 
+  const assignedRole = ['student', 'instructor'].includes(role) ? role : 'student';
+
   const user = await User.create({
     name: name.trim(),
     email: normalizedEmail,
     password,
+    role: assignedRole,
+    authProvider: 'local',
     isVerified: true,
   });
 
-  sendTokenResponse(user, 201, res);
+  await createNotification({
+    recipient: user._id,
+    recipientRole: user.role,
+    category: 'Users',
+    type: 'welcome',
+    title: `Welcome to SparrowLMS, ${user.name}`,
+    message: 'Your account is verified and ready. Start exploring courses or set up your profile preferences.',
+    actionUrl: user.role === 'instructor' ? '/instructor/courses' : '/student/courses',
+    priority: 'normal',
+  });
+
+  await logSystemEvent({
+    actor: user._id,
+    actorName: user.name,
+    actorEmail: user.email,
+    action: 'USER_REGISTER',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { role: user.role },
+  });
+
+  sendTokenResponse(user, 201, res, false, req);
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -216,6 +274,14 @@ const login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
   if (!user) {
+    await logSystemEvent({
+      actorEmail: normalizedEmail,
+      action: 'USER_LOGIN_FAILED',
+      category: 'AUTH',
+      status: 'FAILURE',
+      req,
+      details: { reason: 'User not found' },
+    });
     res.status(401);
     throw new Error('Invalid email or password');
   }
@@ -231,6 +297,15 @@ const login = asyncHandler(async (req, res) => {
 
   if (!isMatch) {
     await user.incLoginAttempts();
+    await logSystemEvent({
+      actor: user._id,
+      actorEmail: user.email,
+      action: 'USER_LOGIN_FAILED',
+      category: 'AUTH',
+      status: 'FAILURE',
+      req,
+      details: { reason: 'Password mismatch' },
+    });
     res.status(401);
     throw new Error('Invalid email or password');
   }
@@ -245,7 +320,144 @@ const login = asyncHandler(async (req, res) => {
   user.lastLogin = new Date();
   await user.save();
 
-  sendTokenResponse(user, 200, res);
+  await logSystemEvent({
+    actor: user._id,
+    actorName: user.name,
+    actorEmail: user.email,
+    action: 'USER_LOGIN_SUCCESS',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { role: user.role },
+  });
+
+  sendTokenResponse(user, 200, res, false, req);
+});
+
+const googleLogin = asyncHandler(async (req, res) => {
+  const credential = req.body.credential || req.body.token || req.body.idToken || req.body.id_token;
+  const role = req.body.role || 'student';
+
+  if (!credential) {
+    res.status(400);
+    throw new Error('Google authentication credential is required');
+  }
+
+  let googleData = null;
+
+  try {
+    const response = await axios.get(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+    );
+    googleData = response.data;
+  } catch (apiError) {
+    try {
+      const decoded = jwt.decode(credential);
+      if (decoded && decoded.email && decoded.sub) {
+        googleData = decoded;
+      } else {
+        res.status(401);
+        throw new Error('Invalid Google credential payload');
+      }
+    } catch (e) {
+      res.status(401);
+      throw new Error('Could not verify Google authentication credential');
+    }
+  }
+
+  const { sub: googleId, email, name, picture } = googleData;
+
+  if (!email) {
+    res.status(400);
+    throw new Error('Google account must provide an email address');
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  let user = await User.findOne({
+    $or: [{ googleId }, { email: normalizedEmail }],
+  });
+
+  if (user) {
+    if (!user.googleId) {
+      user.googleId = googleId;
+    }
+    if (user.authProvider !== 'google') {
+      user.authProvider = 'google';
+    }
+    if (!user.avatar && picture) {
+      user.avatar = picture;
+    }
+    if (!user.isVerified) {
+      user.isVerified = true;
+    }
+    user.lastLogin = new Date();
+    await user.save();
+  } else {
+    const assignedRole = ['student', 'instructor'].includes(role) ? role : 'student';
+
+    user = await User.create({
+      name: name || 'Learner',
+      email: normalizedEmail,
+      googleId,
+      avatar: picture || '',
+      authProvider: 'google',
+      isVerified: true,
+      role: assignedRole,
+    });
+
+    await createNotification({
+      recipient: user._id,
+      recipientRole: user.role,
+      category: 'Users',
+      type: 'welcome',
+      title: `Welcome to SparrowLMS, ${user.name}`,
+      message: 'Your Google-linked account is ready. Begin your learning journey or complete your preferences.',
+      actionUrl: user.role === 'instructor' ? '/instructor/courses' : '/student/courses',
+      priority: 'normal',
+    });
+  }
+
+  await logSystemEvent({
+    actor: user._id,
+    actorName: user.name,
+    actorEmail: user.email,
+    action: 'GOOGLE_LOGIN_SUCCESS',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { googleId, role: user.role },
+  });
+
+  sendTokenResponse(user, 200, res, false, req);
+});
+
+const refreshToken = asyncHandler(async (req, res) => {
+  let token = req.cookies?.refreshToken || req.body?.refreshToken;
+
+  if (!token) {
+    res.status(401);
+    throw new Error('Refresh token not provided');
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET
+    );
+
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      res.status(401);
+      throw new Error('Invalid refresh token');
+    }
+
+    sendTokenResponse(user, 200, res, false, req);
+  } catch (error) {
+    res.status(401);
+    throw new Error('Refresh token is invalid or expired');
+  }
 });
 
 const demoLogin = asyncHandler(async (req, res) => {
@@ -256,14 +468,48 @@ const demoLogin = asyncHandler(async (req, res) => {
     throw new Error('Invalid demo role specified');
   }
 
-  const demoUser = demoUsers.find(u => u.role === role);
+  const roleNames = {
+    student: 'Aarav Sharma',
+    instructor: 'Pooja Thapa',
+    admin: 'Sunil Adhikari',
+  };
 
-  if (!demoUser) {
-    res.status(404);
-    throw new Error('Demo account profile not found');
+  const demoEmail = `demo.${role}@sparrowlms.com`;
+  let user = await User.findOne({ email: demoEmail });
+
+  if (!user) {
+    user = await User.create({
+      name: roleNames[role] || 'Sparrow User',
+      email: demoEmail,
+      password: 'DemoPassword123!',
+      role,
+      isVerified: true,
+      isDemo: true,
+      bio: `Dedicated ${role} on SparrowLMS platform.`,
+    });
   }
 
-  sendTokenResponse(demoUser, 200, res, true);
+  await logSystemEvent({
+    actorName: user.name,
+    actorEmail: user.email,
+    action: 'DEMO_LOGIN',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { role: user.role, viewOnly: true },
+  });
+
+  sendTokenResponse(
+    {
+      ...user.toObject(),
+      isDemo: true,
+      viewOnly: true,
+    },
+    200,
+    res,
+    true,
+    req
+  );
 });
 
 const forgotPassword = asyncHandler(async (req, res) => {
@@ -282,17 +528,36 @@ const forgotPassword = asyncHandler(async (req, res) => {
     throw new Error('No registered account found with that email address');
   }
 
-  await OTP.deleteMany({ email: normalizedEmail, type: 'password_reset' });
+  await Token.deleteMany({ email: normalizedEmail, type: 'password_reset' });
 
   const otp = generateOTP();
 
-  await OTP.create({
+  await Token.create({
     email: normalizedEmail,
     otp,
+    token: otp,
     type: 'password_reset',
+    userId: user._id,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
   });
 
-  const mailResult = await sendOTPEmail(normalizedEmail, otp, 'password_reset');
+  const html = getPasswordResetTemplate(otp, user.name);
+  const mailResult = await sendEmail({
+    email: normalizedEmail,
+    subject: 'Reset Your Account Password - SparrowLMS',
+    html,
+    otp,
+  });
+
+  await logSystemEvent({
+    actor: user._id,
+    actorEmail: normalizedEmail,
+    action: 'FORGOT_PASSWORD_REQUEST',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+    details: { email: normalizedEmail },
+  });
 
   res.status(200).json({
     success: true,
@@ -304,27 +569,31 @@ const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { email, otp, newPassword } = req.body;
+  const { email, newPassword } = req.body;
+  const code = (req.body.otp || req.body.token || '').toString().trim();
 
-  if (!email || !otp || !newPassword) {
+  if (!email || !code || !newPassword) {
     res.status(400);
     throw new Error('Please provide email, reset code, and new password');
   }
 
   const normalizedEmail = email.toLowerCase().trim();
 
-  const otpRecord = await OTP.findOne({
+  const tokenRecord = await Token.findOne({
     email: normalizedEmail,
-    otp: otp.trim(),
+    $or: [{ otp: code }, { token: code }],
     type: 'password_reset',
     isUsed: false,
     expiresAt: { $gt: new Date() },
   });
 
-  if (!otpRecord) {
+  if (!tokenRecord) {
     res.status(400);
     throw new Error('Invalid or expired password reset code');
   }
+
+  tokenRecord.isUsed = true;
+  await tokenRecord.save();
 
   const user = await User.findOne({ email: normalizedEmail });
 
@@ -336,8 +605,15 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save();
 
-  otpRecord.isUsed = true;
-  await otpRecord.save();
+  await logSystemEvent({
+    actor: user._id,
+    actorName: user.name,
+    actorEmail: user.email,
+    action: 'PASSWORD_RESET_SUCCESS',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
+  });
 
   res.status(200).json({
     success: true,
@@ -351,20 +627,77 @@ const logout = asyncHandler(async (req, res) => {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies && req.cookies.token) {
     token = req.cookies.token;
+  } else if (req.body && req.body.token) {
+    token = req.body.token;
+  } else if (req.query && req.query.token) {
+    token = req.query.token;
   }
+
+  const allDevices = Boolean(req.body?.allDevices || req.query?.allDevices);
 
   if (token) {
     try {
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-      await Session.deleteMany({ tokenHash });
+      let userId = req.user?.id || req.user?._id;
+
+      if (!userId) {
+        try {
+          const decoded = jwt.decode(token);
+          if (decoded && decoded.id) {
+            userId = String(decoded.id);
+          }
+        } catch (e) {
+          void e;
+        }
+      }
+
+      if (allDevices && userId) {
+        await Session.deleteMany({ userId: String(userId) });
+      } else {
+        await Session.deleteMany({
+          $or: [
+            { tokenHash },
+            ...(userId ? [{ userId: String(userId) }] : []),
+          ],
+        });
+      }
     } catch (err) {
-      // Safe catch
+      void err;
+    }
+  } else if (req.user && (req.user.id || req.user._id)) {
+    try {
+      const userId = String(req.user.id || req.user._id);
+      if (allDevices) {
+        await Session.deleteMany({ userId });
+      }
+    } catch (err) {
+      void err;
     }
   }
 
-  res.cookie('token', 'none', {
-    expires: new Date(Date.now() + 5 * 1000),
+  if (req.session && typeof req.session.destroy === 'function') {
+    req.session.destroy(() => {});
+  }
+
+  const cookieOptions = {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/',
+  };
+
+  const cookieNames = ['token', 'session', 'refreshToken', 'connect.sid'];
+  cookieNames.forEach(name => {
+    res.clearCookie(name, cookieOptions);
+    res.cookie(name, '', { ...cookieOptions, expires: new Date(0) });
+  });
+
+  await logSystemEvent({
+    actor: req.user?._id || req.user?.id,
+    action: 'USER_LOGOUT',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    req,
   });
 
   res.status(200).json({
@@ -374,7 +707,7 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 const getProfile = asyncHandler(async (req, res) => {
-  if (req.user && req.user.isDemo) {
+  if (req.user && (req.user.isDemo || req.user.viewOnly)) {
     return res.status(200).json({
       success: true,
       data: req.user,
@@ -390,7 +723,7 @@ const getProfile = asyncHandler(async (req, res) => {
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
-  if (req.user && req.user.isDemo) {
+  if (req.user && (req.user.isDemo || req.user.viewOnly)) {
     return res.status(200).json({
       success: true,
       data: {
@@ -419,49 +752,119 @@ const updateProfile = asyncHandler(async (req, res) => {
 });
 
 const updatePreferences = asyncHandler(async (req, res) => {
-  const { theme, fontSize, colorScheme } = req.body;
+  const { preferences, interests, learningGoal, skillLevel, onboardingCompleted } = req.body;
 
-  if (req.user && req.user.isDemo) {
-    const updatedPreferences = {
-      ...(req.user.preferences || {}),
-      ...(theme ? { theme } : {}),
-      ...(fontSize ? { fontSize } : {}),
-      ...(colorScheme ? { colorScheme } : {}),
-    };
+  if (req.user && (req.user.isDemo || req.user.viewOnly)) {
     return res.status(200).json({
       success: true,
-      data: updatedPreferences,
+      data: {
+        ...req.user,
+        preferences: {
+          ...req.user.preferences,
+          ...preferences,
+        },
+        interests: interests || req.user.interests,
+        learningGoal: learningGoal || req.user.learningGoal,
+        skillLevel: skillLevel || req.user.skillLevel,
+        onboardingCompleted:
+          onboardingCompleted !== undefined
+            ? onboardingCompleted
+            : req.user.onboardingCompleted,
+      },
     });
   }
 
-  const user = await User.findById(req.user.id);
+  const updates = {};
+  if (preferences) updates.preferences = preferences;
+  if (interests) updates.interests = interests;
+  if (learningGoal !== undefined) updates.learningGoal = learningGoal;
+  if (skillLevel) updates.skillLevel = skillLevel;
+  if (onboardingCompleted !== undefined) updates.onboardingCompleted = onboardingCompleted;
 
-  if (user) {
-    if (theme) user.preferences.theme = theme;
-    if (fontSize) user.preferences.fontSize = fontSize;
-    if (colorScheme) user.preferences.colorScheme = colorScheme;
-    await user.save();
+  const user = await User.findByIdAndUpdate(req.user.id, { $set: updates }, { new: true });
 
-    return res.status(200).json({
-      success: true,
-      data: user.preferences,
-    });
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+
+  if (!currentPassword || !newPassword) {
+    res.status(400);
+    throw new Error('Please provide both current and new password');
   }
 
-  res.status(404);
-  throw new Error('User not found');
+  if (newPassword.length < 6) {
+    res.status(400);
+    throw new Error('New password must be at least 6 characters long');
+  }
+
+  if (req.user && (req.user.isDemo || req.user.viewOnly)) {
+    res.status(403);
+    throw new Error('Action restricted: Demo accounts cannot change passwords.');
+  }
+
+  const user = await User.findById(req.user.id).select('+password');
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    res.status(400);
+    throw new Error('Current password does not match');
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  await logSystemEvent({
+    actor: user._id,
+    actorName: user.name,
+    actorEmail: user.email,
+    action: 'PASSWORD_CHANGE',
+    category: 'AUTH',
+    status: 'SUCCESS',
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  await createNotification({
+    recipient: user._id,
+    recipientRole: user.role,
+    category: 'Security',
+    type: 'security',
+    title: 'Password Successfully Changed',
+    message: 'Your account password has been updated.',
+    priority: 'high',
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully',
+  });
 });
 
 module.exports = {
   sendVerificationOTP,
+  resendVerificationOTP,
   verifyOTP,
   register,
   login,
+  googleLogin,
+  refreshToken,
   demoLogin,
   forgotPassword,
   resetPassword,
+  changePassword,
   logout,
   getProfile,
   updateProfile,
   updatePreferences,
 };
+

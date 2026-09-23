@@ -20,6 +20,12 @@ export const updateUserRole = async (userId, role) => {
   return response.data;
 };
 
+export const toggleUserStatus = async userId => {
+  const response = await api.put(`/admin/users/${userId}/status`);
+  return response.data;
+};
+
+
 export const getAllCourses = async (params = {}) => {
   const response = await api.get('/admin/courses', { params });
   return response.data;
@@ -59,3 +65,14 @@ export const getUserActivity = async (params = {}) => {
   const response = await api.get('/admin/analytics/user-activity', { params });
   return response.data;
 };
+
+export const getEnrollments = async (params = {}) => {
+  const response = await api.get('/admin/enrollments', { params });
+  return response.data;
+};
+
+export const getFinancialReports = async (params = {}) => {
+  const response = await api.get('/admin/reports', { params });
+  return response.data;
+};
+

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Clock, ArrowLeft, GraduationCap, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { Clock, ArrowLeft, GraduationCap, MessageSquare, LayoutDashboard, ClipboardList, HelpCircle, Star } from 'lucide-react';
 
 const ROUTE_CONFIGS = {
   '/student/grades': {
@@ -16,11 +16,48 @@ const ROUTE_CONFIGS = {
     badge: 'Coming Soon',
     icon: MessageSquare,
   },
+  '/instructor/assignments': {
+    title: 'Assignments Studio',
+    description:
+      'Automated grading workflows, code submission sandboxes, and rubric evaluation tools are currently under active development.',
+    badge: 'Coming Soon',
+    icon: ClipboardList,
+  },
+  '/instructor/quizzes': {
+    title: 'Interactive Quizzes & Assessments',
+    description:
+      'Timed exams, automated multiple-choice scoring, and question bank management will be available in the upcoming release.',
+    badge: 'Coming Soon',
+    icon: HelpCircle,
+  },
+  '/instructor/messages': {
+    title: 'Instructor & Student Messaging',
+    description:
+      'Direct office hour chats, student Q&A threads, and broadcast announcements are currently scheduled for development.',
+    badge: 'Coming Soon',
+    icon: MessageSquare,
+  },
+  '/instructor/reviews': {
+    title: 'Course Reviews & Feedback',
+    description:
+      'Detailed learner reviews, sentiment analysis, and instructor response tools are currently being developed.',
+    badge: 'Coming Soon',
+    icon: Star,
+  },
+  '/admin/messages': {
+    title: 'Platform Messaging & Broadcasts',
+    description:
+      'System-wide announcements, instructor direct communications, and support ticketing threads are scheduled for the next release.',
+    badge: 'Coming Soon',
+    icon: MessageSquare,
+  },
 };
 
 export default function FeatureUnderDevelopmentPage({ title, description, badge, icon: PropIcon }) {
   const location = useLocation();
   const config = ROUTE_CONFIGS[location.pathname] || {};
+  const isInstructor = location.pathname.startsWith('/instructor');
+  const isAdmin = location.pathname.startsWith('/admin');
 
   const displayTitle = title || config.title || 'Feature Under Active Development';
   const displayDescription =
@@ -29,6 +66,9 @@ export default function FeatureUnderDevelopmentPage({ title, description, badge,
     'This module is part of our upcoming release cycle. Our team is actively engineering this component to provide an industry-grade learning experience.';
   const displayBadge = badge || config.badge || 'Scheduled Feature';
   const Icon = PropIcon || config.icon || Clock;
+
+  const returnPath = isAdmin ? '/admin' : isInstructor ? '/instructor' : '/student';
+  const coursesPath = isAdmin ? '/admin/courses' : isInstructor ? '/instructor/courses' : '/student/courses';
 
   return (
     <div className="mx-auto max-w-3xl py-12 px-4 text-center">
@@ -76,16 +116,16 @@ export default function FeatureUnderDevelopmentPage({ title, description, badge,
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/student"
+            to={returnPath}
             className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm transition hover:opacity-90 active:scale-95"
             style={{ backgroundColor: 'var(--color-primary-600)' }}
           >
             <LayoutDashboard className="h-4 w-4" />
-            <span>Return to Workspace</span>
+            <span>Return to Dashboard</span>
           </Link>
 
           <Link
-            to="/student/courses"
+            to={coursesPath}
             className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold border transition hover:opacity-80"
             style={{
               borderColor: 'var(--border-subtle)',

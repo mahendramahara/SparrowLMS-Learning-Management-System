@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 const User = require('../modules/user/user.model');
-const demoUsers = require('../demo/users.json');
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
@@ -20,33 +19,31 @@ const protect = asyncHandler(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Support demo users without MongoDB CastError
+    let user;
     if (typeof decoded.id === 'string' && decoded.id.startsWith('demo_')) {
-      const demoUser = demoUsers.find(u => u._id === decoded.id);
-      if (!demoUser) {
-        res.status(401);
-        throw new Error('Demo session expired or user not found');
+      const demoRole = decoded.id.replace('demo_', '');
+      user = await User.findOne({ role: demoRole });
+      if (!user) {
+        user = await User.findOne({ role: 'student' });
       }
-      req.user = {
-        ...demoUser,
-        id: demoUser._id,
-      };
-      return next();
+    } else {
+      user = await User.findById(decoded.id).select('-password');
     }
 
-    req.user = await User.findById(decoded.id).select('-password');
-
-    if (!req.user) {
+    if (!user) {
       res.status(401);
       throw new Error('User not found');
     }
 
+    req.user = user;
     next();
   } catch (error) {
     res.status(401);
     throw new Error('Not authorized to access this route');
   }
 });
+
+const requireSignIn = protect;
 
 const authorize = (...roles) => {
   return (req, res, next) => {
@@ -62,12 +59,10 @@ const authorize = (...roles) => {
 
 const restrictDemo = (req, res, next) => {
   if (req.user && (req.user.isDemo || req.user.viewOnly)) {
-    // Read-only methods allowed
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       return next();
     }
 
-    // Allow demo user to update frontend preferences (theme, font)
     if (req.path === '/preferences' || req.originalUrl?.includes('/auth/preferences')) {
       return next();
     }
@@ -82,4 +77,4 @@ const restrictDemo = (req, res, next) => {
   next();
 };
 
-module.exports = { protect, authorize, restrictDemo };
+module.exports = { protect, requireSignIn, authorize, restrictDemo };

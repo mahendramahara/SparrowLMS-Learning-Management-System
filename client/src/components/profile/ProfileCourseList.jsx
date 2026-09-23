@@ -36,7 +36,8 @@ export default function ProfileCourseList({ courses }) {
         {title} ({list.length})
       </p>
       {list.map(course => {
-        const color = CATEGORY_COLORS[course.category] || 'var(--color-primary-600)';
+        const categoryName = course.category?.name || (typeof course.category === 'string' ? course.category : 'General');
+        const color = CATEGORY_COLORS[categoryName] || 'var(--color-primary-600)';
         return (
           <div
             key={course.id}
@@ -63,7 +64,7 @@ export default function ProfileCourseList({ courses }) {
                   className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0"
                   style={{ backgroundColor: `${color}18`, color }}
                 >
-                  {course.category}
+                  {categoryName}
                 </span>
               </div>
               <ProgressBar value={course.progress} color={color} />

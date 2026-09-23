@@ -24,6 +24,11 @@ const analyticsRoutes = require('./modules/analytics/analytics.routes');
 const paymentRoutes = require('./modules/payment/payment.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
 const instructorRoutes = require('./modules/instructor/instructor.routes');
+const path = require('path');
+const notificationRoutes = require('./modules/notification/notification.routes');
+const uploadRoutes = require('./modules/upload/upload.routes');
+const categoryRoutes = require('./modules/admin/category.routes');
+const assignmentRoutes = require('./modules/assignment/assignment.routes');
 
 const app = express();
 
@@ -50,14 +55,20 @@ app.use(
   })
 );
 
-app.use(
-  '/api',
-  rateLimit({
-    windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-    message: 'Too many requests from this IP, please try again later.',
-  })
-);
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 50,
+  message: 'Too many upload requests, please slow down.',
+});
+
+const apiLimiter = rateLimit({
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  message: 'Too many requests from this IP, please try again later.',
+  skip: req => req.path.startsWith('/api/upload'),
+});
+
+app.use('/api', apiLimiter);
 
 app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 app.use(express.json({ limit: '50mb' }));
@@ -67,6 +78,24 @@ app.use(compression());
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());
+
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'SparrowLMS API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'SparrowLMS API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -86,6 +115,11 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/instructor', instructorRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/submissions', assignmentRoutes);
+app.use('/api/upload', uploadLimiter, uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

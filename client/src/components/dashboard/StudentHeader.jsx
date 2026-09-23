@@ -2,15 +2,35 @@ import { useState, useRef, useEffect } from 'react';
 import { Search, Bell, Menu, User, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { getNotifications } from '../../services/notification.api';
 
 export default function StudentHeader({ onToggleMobile }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const studentName = user?.name || 'Mahendra Singh Mahara';
   const studentRole = user?.role || 'Student';
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUnread = async () => {
+      try {
+        const res = await getNotifications({ unreadOnly: 'true' });
+        if (isMounted) {
+          setUnreadCount(typeof res?.unreadCount === 'number' ? res.unreadCount : 0);
+        }
+      } catch (err) {
+        void err;
+      }
+    };
+    fetchUnread();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = e => {
@@ -22,9 +42,16 @@ export default function StudentHeader({ onToggleMobile }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+      navigate('/login', { replace: true });
+    }
   };
 
   return (
@@ -67,6 +94,7 @@ export default function StudentHeader({ onToggleMobile }) {
       <div className="flex items-center gap-3 sm:gap-4 ml-4">
         <button
           type="button"
+          onClick={() => navigate('/student/notifications')}
           aria-label="Notifications"
           className="relative flex h-10 w-10 items-center justify-center rounded-xl border transition hover:opacity-80"
           style={{
@@ -76,9 +104,11 @@ export default function StudentHeader({ onToggleMobile }) {
           }}
         >
           <Bell className="h-4 w-4" />
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
-            2
-          </span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </button>
 
         <div className="relative" ref={dropdownRef}>
@@ -141,12 +171,13 @@ export default function StudentHeader({ onToggleMobile }) {
               </button>
               <button
                 type="button"
+                disabled={isLoggingOut}
                 onClick={handleLogout}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition hover:bg-rose-50 hover:text-rose-600"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
                 style={{ color: '#ef4444' }}
               >
                 <LogOut className="h-3.5 w-3.5" />
-                <span>Sign Out</span>
+                <span>{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>
               </button>
             </div>
           )}

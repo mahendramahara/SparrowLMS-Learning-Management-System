@@ -1,6 +1,5 @@
-const { describe, it, expect, beforeEach, vi } = require('vitest');
 const request = require('supertest');
-const app = require('../app');
+const app = require('../src/app');
 const Course = require('../src/modules/course/course.model');
 
 vi.mock('../../course/course.model');

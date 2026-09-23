@@ -9,6 +9,7 @@ export default function AuthCard({
   children,
   footer,
   showBackHome = true,
+  maxWidth = 'max-w-md',
 }) {
   return (
     <div
@@ -26,7 +27,7 @@ export default function AuthCard({
         </Link>
       )}
 
-      <div className="relative w-full max-w-md">
+      <div className={`relative w-full ${maxWidth}`}>
         <div className="auth-card-bg p-6 sm:p-8">
           <div className="flex flex-col items-center text-center mb-6">
             <Link to="/" className="mb-4 inline-block">

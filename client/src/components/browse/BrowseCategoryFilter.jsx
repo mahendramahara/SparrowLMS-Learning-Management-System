@@ -6,12 +6,13 @@ export default function BrowseCategoryFilter({
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
       {categories.map(category => {
-        const isActive = activeCategory === category;
+        const name = typeof category === 'object' ? category.name : category;
+        const isActive = activeCategory === name;
         return (
           <button
-            key={category}
+            key={name}
             type="button"
-            onClick={() => onSelectCategory(category)}
+            onClick={() => onSelectCategory?.(name)}
             className="shrink-0 rounded-xl px-4 py-2 text-xs font-semibold border transition-all"
             style={
               isActive
@@ -28,7 +29,7 @@ export default function BrowseCategoryFilter({
                   }
             }
           >
-            {category}
+            {name}
           </button>
         );
       })}

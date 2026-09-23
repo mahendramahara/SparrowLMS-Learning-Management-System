@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, User, Lock, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { AuthCard, AuthInput, AuthButton, OtpInput, AuthAlert } from '../../components/auth';
+import { AuthCard, AuthInput, AuthButton, OtpInput, AuthAlert, OnboardingForm, GoogleSignInButton } from '../../components/auth';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { sendOTP, verifyOTP, register: registerUser } = useAuth();
+  const { sendOTP, resendOTP, verifyOTP, register: registerUser, googleLogin } = useAuth();
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -36,6 +36,18 @@ export default function RegisterPage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async credential => {
+    setErrorMessage('');
+    try {
+      await googleLogin(credential, 'student');
+      setStep(4);
+    } catch (err) {
+      setErrorMessage(
+        err.response?.data?.message || 'Google registration failed. Please try again.'
+      );
     }
   };
 
@@ -71,7 +83,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await registerUser({ name, email, password, otp });
-      navigate('/student');
+      setStep(4);
     } catch (err) {
       setErrorMessage(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -83,7 +95,7 @@ export default function RegisterPage() {
     setErrorMessage('');
     setLoading(true);
     try {
-      const res = await sendOTP(email);
+      const res = await resendOTP(email, 'email_verification');
       if (res?.previewOtp) {
         setDevOtpHint(res.previewOtp);
         setOtp(res.previewOtp);
@@ -97,30 +109,35 @@ export default function RegisterPage() {
 
   return (
     <AuthCard
-      title="Create an Account"
+      maxWidth={step === 4 ? 'max-w-xl' : 'max-w-md'}
+      title={step === 4 ? 'Personalize Your Experience' : 'Create an Account'}
       subtitle={
         step === 1
           ? 'Enter your email to receive a verification code'
           : step === 2
             ? `Verification code sent to ${email}`
-            : 'Set your name and secure password'
+            : step === 3
+              ? 'Set your name and secure password'
+              : 'Choose learning topics and preferences to customize your feed'
       }
-      badge={`Step ${step} of 3`}
+      badge={`Step ${step} of 4`}
       footer={
-        <p>
-          Already have an account?{' '}
-          <Link
-            to="/login"
-            className="font-semibold hover:underline"
-            style={{ color: 'var(--color-primary-600)' }}
-          >
-            Sign in
-          </Link>
-        </p>
+        step !== 4 && (
+          <p>
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              className="font-semibold hover:underline"
+              style={{ color: 'var(--color-primary-600)' }}
+            >
+              Sign in
+            </Link>
+          </p>
+        )
       }
     >
       <div className="flex items-center justify-between gap-1 mb-2">
-        {[1, 2, 3].map(s => (
+        {[1, 2, 3, 4].map(s => (
           <div
             key={s}
             className="h-1.5 flex-1 rounded-full transition-all duration-300"
@@ -134,26 +151,48 @@ export default function RegisterPage() {
       <AuthAlert type="error" message={errorMessage} />
 
       {step === 1 && (
-        <form onSubmit={handleSendOtp} className="space-y-4">
-          <AuthInput
-            label="Email Address"
-            id="email"
-            type="email"
-            required
-            autoFocus
-            autoComplete="email"
-            placeholder="name@example.com"
-            icon={Mail}
-            value={email}
-            onChange={e => {
-              setEmail(e.target.value);
-              setErrorMessage('');
-            }}
+        <div className="space-y-4">
+          <form onSubmit={handleSendOtp} className="space-y-4">
+            <AuthInput
+              label="Email Address"
+              id="email"
+              type="email"
+              required
+              autoFocus
+              autoComplete="email"
+              placeholder="name@example.com"
+              icon={Mail}
+              value={email}
+              onChange={e => {
+                setEmail(e.target.value);
+                setErrorMessage('');
+              }}
+            />
+            <AuthButton type="submit" loading={loading} icon={ArrowRight}>
+              Continue
+            </AuthButton>
+          </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" style={{ borderColor: 'var(--border-subtle)' }} />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span
+                className="px-2"
+                style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-muted)' }}
+              >
+                Or Continue With
+              </span>
+            </div>
+          </div>
+
+          <GoogleSignInButton
+            role="student"
+            onAuthSuccess={handleGoogleSuccess}
+            text="Sign Up with Google"
           />
-          <AuthButton type="submit" loading={loading} icon={ArrowRight}>
-            Continue
-          </AuthButton>
-        </form>
+        </div>
       )}
 
       {step === 2 && (
@@ -246,6 +285,10 @@ export default function RegisterPage() {
             Create Account
           </AuthButton>
         </form>
+      )}
+
+      {step === 4 && (
+        <OnboardingForm onComplete={() => navigate('/student')} />
       )}
     </AuthCard>
   );

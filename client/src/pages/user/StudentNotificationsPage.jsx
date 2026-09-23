@@ -1,15 +1,66 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Bell, Loader2 } from 'lucide-react';
 import NotificationHeader from '../../components/notifications/NotificationHeader';
 import NotificationFilterTabs from '../../components/notifications/NotificationFilterTabs';
 import NotificationItemCard from '../../components/notifications/NotificationItemCard';
-import notifData from '../../demo/studentNotifications.json';
+import {
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  clearAllNotifications,
+} from '../../services/notification.api';
 
 export default function StudentNotificationsPage() {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(notifData.notifications);
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadNotifications = async () => {
+      try {
+        setIsLoading(true);
+        const res = await getNotifications();
+        const raw = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.notifications)
+          ? res.data.notifications
+          : [];
+
+        if (isMounted) {
+          const mapped = raw.map(n => ({
+            id: n._id || n.id,
+            type: n.type || 'system',
+            title: n.title,
+            message: n.message,
+            time: n.createdAt
+              ? new Date(n.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Recently',
+            read: n.isRead,
+            actionUrl: n.actionUrl,
+            category: n.category,
+          }));
+          setNotifications(mapped);
+        }
+      } catch (e) {
+        void e;
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    loadNotifications();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const counts = useMemo(() => {
     return {
@@ -31,20 +82,40 @@ export default function StudentNotificationsPage() {
     });
   }, [notifications, activeFilter]);
 
-  const handleToggleRead = id => {
+  const handleToggleRead = async id => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: !n.read } : n)));
+    try {
+      await markNotificationAsRead(id);
+    } catch (e) {
+      void e;
+    }
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    try {
+      await markAllNotificationsAsRead();
+    } catch (e) {
+      void e;
+    }
   };
 
-  const handleClearRead = () => {
+  const handleClearRead = async () => {
     setNotifications(prev => prev.filter(n => !n.read));
+    try {
+      await clearAllNotifications();
+    } catch (e) {
+      void e;
+    }
   };
 
-  const handleDismiss = id => {
+  const handleDismiss = async id => {
     setNotifications(prev => prev.filter(n => n.id !== id));
+    try {
+      await deleteNotification(id);
+    } catch (e) {
+      void e;
+    }
   };
 
   const handleNavigate = url => {
@@ -65,7 +136,15 @@ export default function StudentNotificationsPage() {
         counts={counts}
       />
 
-      {filteredNotifications.length > 0 ? (
+      {isLoading ? (
+        <div
+          className="flex flex-col items-center justify-center rounded-2xl p-12 text-center border"
+          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
+        >
+          <Loader2 className="h-6 w-6 animate-spin mb-2 text-blue-500" />
+          <p className="text-xs font-semibold">Loading notifications...</p>
+        </div>
+      ) : filteredNotifications.length > 0 ? (
         <div className="space-y-3">
           {filteredNotifications.map(notification => (
             <NotificationItemCard

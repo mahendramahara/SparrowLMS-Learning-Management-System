@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, CheckCircle2 } from 'lucide-react';
+import { Mail, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthCard, AuthInput, AuthButton, OtpInput, AuthAlert } from '../../components/auth';
 
@@ -10,12 +10,22 @@ export default function VerifyOtpPage() {
   const initialEmail = searchParams.get('email') || '';
   const initialType = searchParams.get('type') || 'email_verification';
 
-  const { verifyOTP } = useAuth();
+  const { verifyOTP, resendOTP } = useAuth();
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const handleVerify = async e => {
     e.preventDefault();
@@ -40,6 +50,24 @@ export default function VerifyOtpPage() {
       setErrorMessage(err.response?.data?.message || 'Invalid or expired code. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!email) {
+      setErrorMessage('Please enter your email to resend code.');
+      return;
+    }
+    setErrorMessage('');
+    setResending(true);
+    try {
+      await resendOTP(email, initialType);
+      setSuccessMessage('New verification code sent to your email.');
+      setCooldown(60);
+    } catch (err) {
+      setErrorMessage(err.response?.data?.message || 'Failed to resend verification code.');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -88,6 +116,19 @@ export default function VerifyOtpPage() {
         <AuthButton type="submit" loading={loading} icon={CheckCircle2}>
           Verify &amp; Continue
         </AuthButton>
+
+        <div className="text-center pt-2">
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resending || cooldown > 0}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold hover:underline disabled:opacity-50"
+            style={{ color: 'var(--color-primary-600)' }}
+          >
+            <RotateCcw className="h-3 w-3" />
+            {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}
+          </button>
+        </div>
       </form>
     </AuthCard>
   );

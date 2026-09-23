@@ -59,7 +59,7 @@ export default function CourseProgressCard({
           {title}
         </h3>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-          {category}
+          {typeof category === 'object' ? category?.name : category}
         </p>
       </div>
 

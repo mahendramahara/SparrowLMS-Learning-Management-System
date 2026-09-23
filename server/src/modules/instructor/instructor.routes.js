@@ -21,5 +21,6 @@ router.get('/students', getMyStudents);
 router.put('/courses/:id/publish', publishCourse);
 router.put('/courses/:id/unpublish', unpublishCourse);
 router.get('/courses/:id/analytics', getCourseAnalytics);
+router.get('/earnings', require('../payment/payment.controller').getInstructorEarnings);
 
 module.exports = router;

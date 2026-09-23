@@ -9,6 +9,11 @@ const courseSchema = new mongoose.Schema(
       trim: true,
     },
     slug: String,
+    subtitle: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     description: {
       type: String,
       required: [true, 'Please provide a course description'],
@@ -17,14 +22,17 @@ const courseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+      index: true,
     },
     category: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
       required: [true, 'Please provide a category'],
+      index: true,
     },
     level: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
+      enum: ['beginner', 'intermediate', 'advanced', 'all levels'],
       default: 'beginner',
     },
     price: {
@@ -32,7 +40,15 @@ const courseSchema = new mongoose.Schema(
       required: [true, 'Please provide a price'],
       default: 0,
     },
+    language: {
+      type: String,
+      default: 'English',
+    },
     thumbnail: {
+      type: String,
+      default: '',
+    },
+    thumbnailPublicId: {
       type: String,
       default: '',
     },
@@ -54,18 +70,34 @@ const courseSchema = new mongoose.Schema(
     },
     isPublished: {
       type: Boolean,
-      default: false,
+      default: true,
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'archived'],
+      default: 'published',
     },
     tags: [String],
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
+courseSchema.virtual('chapters', {
+  ref: 'Chapter',
+  localField: '_id',
+  foreignField: 'courseId',
+  justOne: false,
+  options: { sort: { order: 1 } },
+});
+
 courseSchema.pre('save', function (next) {
   if (this.isModified('title')) {
-    this.slug = slugify(this.title, { lower: true, strict: true });
+    this.slug = slugify(this.title, { lower: true, strict: true }) + '-' + Math.floor(1000 + Math.random() * 9000);
   }
   next();
 });

@@ -1,106 +1,64 @@
-import { useNavigate } from 'react-router-dom';
-import { Users, Video, DollarSign, LogOut } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-
-const STATS = [
-  {
-    icon: Users,
-    label: 'Active Students',
-    value: '1,240',
-    color: 'var(--color-primary-600)',
-    bg: 'var(--color-primary-50)',
-  },
-  {
-    icon: Video,
-    label: 'Published Courses',
-    value: '6 Courses',
-    color: '#059669',
-    bg: 'rgba(16,185,129,0.1)',
-  },
-  {
-    icon: DollarSign,
-    label: 'Total Revenue',
-    value: '$8,450',
-    color: '#7c3aed',
-    bg: 'rgba(124,58,237,0.1)',
-  },
-];
+import { useState, useEffect } from 'react';
+import InstructorHeroBanner from '../../components/instructor/InstructorHeroBanner';
+import InstructorCoursesGrid from '../../components/instructor/InstructorCoursesGrid';
+import InstructorProgressChart from '../../components/instructor/InstructorProgressChart';
+import InstructorRecentStudents from '../../components/instructor/InstructorRecentStudents';
+import InstructorProfileSidebarCard from '../../components/instructor/InstructorProfileSidebarCard';
+import InstructorUpcomingClasses from '../../components/instructor/InstructorUpcomingClasses';
+import InstructorQuickActions from '../../components/instructor/InstructorQuickActions';
+import InstructorActivityFeed from '../../components/instructor/InstructorActivityFeed';
+import { getInstructorDashboard } from '../../services/instructor.api';
+import { Loader2 } from 'lucide-react';
 
 export default function InstructorDashboard() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    let isMounted = true;
+    const fetchDashboard = async () => {
+      try {
+        const res = await getInstructorDashboard();
+        if (isMounted && res?.data) {
+          setData(res.data);
+        }
+      } catch (err) {
+        void err;
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchDashboard();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
+  if (!data) return null;
 
   return (
-    <div
-      className="min-h-[80vh] py-10 px-4 sm:px-6 lg:px-8"
-      style={{ backgroundColor: 'var(--bg-subtle)' }}
-    >
-      <div className="mx-auto max-w-5xl">
-        <div
-          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl p-6 shadow-sm"
-          style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
-        >
-          <div>
-            <div
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold mb-2"
-              style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#059669' }}
-            >
-              Instructor Studio
-            </div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              Instructor Portal · {user?.name || 'Suman Sharma'}
-            </h1>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-              {user?.email} · Manage course curriculums, student enrollments, and reviews
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition hover:opacity-80"
-            style={{
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Sign Out</span>
-          </button>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        <div className="xl:col-span-8 space-y-6">
+          <InstructorHeroBanner banner={data.banner} stats={data.stats} />
+          <InstructorCoursesGrid courses={data.courses || []} />
+          <InstructorProgressChart progressData={data.studentProgress || []} courseStats={data.courseStats} />
+          <InstructorRecentStudents students={data.recentStudents || []} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          {STATS.map(({ icon: Icon, label, value, color, bg }) => (
-            <div
-              key={label}
-              className="rounded-2xl p-5"
-              style={{
-                backgroundColor: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: bg, color }}
-                >
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                    {label}
-                  </p>
-                  <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {value}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="xl:col-span-4 space-y-6">
+          <InstructorProfileSidebarCard instructor={data.instructor} />
+          <InstructorUpcomingClasses classes={data.upcomingClasses || []} />
+          <InstructorQuickActions actions={data.quickActions || []} />
+          <InstructorActivityFeed activities={data.latestActivity || []} />
         </div>
       </div>
     </div>

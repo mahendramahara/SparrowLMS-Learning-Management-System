@@ -1,6 +1,6 @@
-import { Star, Clock, BookOpen, Users, User, ArrowRight } from 'lucide-react';
+import { Star, Clock, BookOpen, Users, User, ArrowRight, Play } from 'lucide-react';
 
-export default function BrowseCourseCard({ course, onEnroll }) {
+export default function BrowseCourseCard({ course, onEnroll, onPreview }) {
   if (!course) return null;
 
   return (
@@ -12,7 +12,10 @@ export default function BrowseCourseCard({ course, onEnroll }) {
       }}
     >
       <div>
-        <div className="relative aspect-video w-full overflow-hidden bg-slate-900">
+        <div
+          onClick={() => onPreview?.(course)}
+          className="relative aspect-video w-full overflow-hidden bg-slate-900 cursor-pointer"
+        >
           <img
             src={course.thumbnail}
             alt={course.title}
@@ -20,6 +23,13 @@ export default function BrowseCourseCard({ course, onEnroll }) {
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 backdrop-blur-[1px]">
+            <div className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-slate-900 shadow-lg transform transition group-hover:scale-105">
+              <Play className="h-3.5 w-3.5 fill-current text-blue-600" />
+              <span>Preview Video</span>
+            </div>
+          </div>
 
           <span
             className="absolute top-3 left-3 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm"
@@ -107,15 +117,30 @@ export default function BrowseCourseCard({ course, onEnroll }) {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onEnroll?.(course)}
-            className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90 active:scale-95"
-            style={{ backgroundColor: 'var(--color-primary-600)' }}
-          >
-            <span>Enroll Now</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onPreview?.(course)}
+              className="flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-semibold border transition hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95"
+              style={{
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              <Play className="h-3 w-3 fill-current text-blue-600" />
+              <span>Preview</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onEnroll?.(course)}
+              className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90 active:scale-95"
+              style={{ backgroundColor: 'var(--color-primary-600)' }}
+            >
+              <span>Enroll</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

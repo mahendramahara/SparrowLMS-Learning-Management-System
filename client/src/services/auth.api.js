@@ -5,6 +5,11 @@ export const sendVerificationOTP = async email => {
   return response.data;
 };
 
+export const resendVerificationOTP = async (email, type = 'email_verification') => {
+  const response = await api.post('/auth/resend-otp', { email, type });
+  return response.data;
+};
+
 export const verifyOTP = async (email, otp, type) => {
   const response = await api.post('/auth/verify-otp', { email, otp, type });
   return response.data;
@@ -17,6 +22,16 @@ export const register = async userData => {
 
 export const login = async credentials => {
   const response = await api.post('/auth/login', credentials);
+  return response.data;
+};
+
+export const googleLogin = async (credential, role = 'student') => {
+  const response = await api.post('/auth/google', { credential, role });
+  return response.data;
+};
+
+export const refreshToken = async () => {
+  const response = await api.post('/auth/refresh-token');
   return response.data;
 };
 
@@ -35,8 +50,8 @@ export const resetPassword = async (email, otp, newPassword) => {
   return response.data;
 };
 
-export const logout = async () => {
-  const response = await api.post('/auth/logout');
+export const logout = async (allDevices = false) => {
+  const response = await api.post('/auth/logout', { allDevices });
   return response.data;
 };
 

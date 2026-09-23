@@ -12,6 +12,9 @@ const uploadToCloudinary = async (filePath, folder, resourceType = 'auto') => {
     const result = await cloudinary.uploader.upload(filePath, {
       folder: `sparrowlms/${folder}`,
       resource_type: resourceType,
+      use_filename: true,
+      unique_filename: true,
+      overwrite: false,
     });
     return result;
   } catch (error) {

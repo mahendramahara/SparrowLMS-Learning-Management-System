@@ -1,12 +1,12 @@
-const { describe, it, expect, beforeEach } = require('vitest');
 const request = require('supertest');
-const app = require('../app');
+const app = require('../src/app');
 
 describe('Enrollment Module', () => {
   let authToken;
 
-  beforeEach(() => {
-    authToken = 'Bearer valid_token_123';
+  beforeEach(async () => {
+    const loginRes = await request(app).post('/api/auth/demo-login').send({ role: 'student' });
+    authToken = `Bearer ${loginRes.body.token}`;
   });
 
   describe('POST /api/enrollments', () => {

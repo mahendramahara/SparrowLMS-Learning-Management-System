@@ -1,3 +1,5 @@
+import UniversalVideoPlayer from '../common/UniversalVideoPlayer';
+
 export default function ClassroomVideoPlayer({ videoUrl, title }) {
   return (
     <div
@@ -8,21 +10,7 @@ export default function ClassroomVideoPlayer({ videoUrl, title }) {
       }}
     >
       <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-        {videoUrl ? (
-          <video
-            src={videoUrl}
-            controls
-            className="h-full w-full object-contain"
-            playsInline
-            controlsList="nodownload"
-          >
-            Your browser does not support the video tag.
-          </video>
-        ) : (
-          <div className="text-center p-8 text-slate-400 text-xs">
-            No video available for this lesson.
-          </div>
-        )}
+        <UniversalVideoPlayer videoUrl={videoUrl} title={title} />
       </div>
 
       <div

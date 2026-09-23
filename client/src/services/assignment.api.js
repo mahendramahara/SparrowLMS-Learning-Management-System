@@ -1,5 +1,10 @@
 import api from '../utils/api';
 
+export const getAllAssignments = async (params = {}) => {
+  const response = await api.get('/assignments', { params });
+  return response.data;
+};
+
 export const getAssignments = async courseId => {
   const response = await api.get(`/courses/${courseId}/assignments`);
   return response.data;
@@ -10,8 +15,12 @@ export const getAssignmentById = async assignmentId => {
   return response.data;
 };
 
-export const createAssignment = async (courseId, assignmentData) => {
-  const response = await api.post(`/courses/${courseId}/assignments`, assignmentData);
+export const createAssignment = async (courseIdOrData, maybeData) => {
+  if (typeof courseIdOrData === 'string' && maybeData) {
+    const response = await api.post(`/courses/${courseIdOrData}/assignments`, maybeData);
+    return response.data;
+  }
+  const response = await api.post('/assignments', courseIdOrData);
   return response.data;
 };
 

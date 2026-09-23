@@ -63,7 +63,7 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-export default function SettingsNotificationSection({ notifications }) {
+export default function SettingsNotificationSection({ notifications, onSave }) {
   const [prefs, setPrefs] = useState(notifications);
 
   const toggle = key => setPrefs(prev => ({ ...prev, [key]: !prev[key] }));
@@ -107,12 +107,25 @@ export default function SettingsNotificationSection({ notifications }) {
                     {desc}
                   </p>
                 </div>
-                <Toggle checked={!!prefs[key]} onChange={() => toggle(key)} />
+                <Toggle checked={!!prefs?.[key]} onChange={() => toggle(key)} />
               </div>
             ))}
           </div>
         </div>
       ))}
+
+      {onSave && (
+        <div className="flex justify-end pt-2">
+          <button
+            type="button"
+            onClick={() => onSave(prefs)}
+            className="rounded-xl px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95"
+            style={{ backgroundColor: 'var(--color-primary-600)' }}
+          >
+            Save Preferences
+          </button>
+        </div>
+      )}
     </div>
   );
 }
